@@ -30,6 +30,9 @@ static int execute(void)
 		0xD804, 0xDC05,
 		0xD804, 0xDC22,
 		0};
+	const u16 text[] =
+u"\u00d6sterreich Edelwei\u00df Sm\u00f8rrebr\u00f8d Sm\u00f6rg"
+u"\u00e5s Ni\u00f1o Ren\u00e9 >\u1f19\u03bb\u03bb\u03ac\u03c2<\n";
 
 	/* SetAttribute */
 	efi_st_printf("\nColor palette\n");
@@ -116,6 +119,11 @@ static int execute(void)
 		efi_st_todo("Unicode output not fully supported\n");
 	} else if (con_out->mode->cursor_column != 2) {
 		efi_st_printf("Unicode not handled properly\n");
+		return EFI_ST_FAILURE;
+	}
+	ret = con_out->output_string(con_out, text);
+	if (ret != EFI_ST_SUCCESS) {
+		efi_st_error("OutputString failed for international chars\n");
 		return EFI_ST_FAILURE;
 	}
 	efi_st_printf("\n");
