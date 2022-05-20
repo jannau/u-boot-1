@@ -37,6 +37,7 @@ dtb-$(CONFIG_ARCH_APPLE) += \
 	t6000-j316s.dtb \
 	t6001-j314c.dtb \
 	t6001-j316c.dtb \
+	t6001-j375c.dtb \
 	t8103-j274.dtb \
 	t8103-j293.dtb \
 	t8103-j313.dtb \
