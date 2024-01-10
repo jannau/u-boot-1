@@ -6,6 +6,9 @@
  * (C) Copyright 2023 Dzmitry Sankouski <dsankouski@gmail.com>
  */
 
+#include <charset.h>
+#include <config.h>
+
 #define FLIPPED_DIRECTION 1
 #define NORMAL_DIRECTION 0
 
@@ -142,3 +145,15 @@ int console_simple_get_font(struct udevice *dev, int seq, struct vidfont_info *i
  * See details in video_console.h select_font function
  **/
 int console_simple_select_font(struct udevice *dev, const char *name, uint size);
+
+/**
+ *
+ */
+static inline u8 console_utf_to_cp437(int codepoint)
+{
+	if (CONFIG_IS_ENABLED(CHARSET)) {
+		utf_to_cp(&codepoint, codepage_437);
+		return (u8)codepoint;
+	}
+	return (u8)codepoint;
+}
