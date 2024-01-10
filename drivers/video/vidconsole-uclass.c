@@ -11,6 +11,7 @@
 
 #include <common.h>
 #include <abuf.h>
+#include <charset.h>
 #include <command.h>
 #include <console.h>
 #include <log.h>
@@ -489,6 +490,11 @@ int vidconsole_put_char(struct udevice *dev, char ch)
 		priv->last_ch = 0;
 		break;
 	default:
+#ifdef CONFIG_EFI_LOADER
+		ch = utf8_to_cp437_stream(ch, priv->utf8_cp437_buf);
+		if (ch == 0)
+			return 0;
+#endif
 		ret = vidconsole_output_glyph(dev, ch);
 		if (ret < 0)
 			return ret;

@@ -43,6 +43,7 @@ enum {
  * @col_saved:		Saved X position, in fractional units (VID_TO_POS(x))
  * @row_saved:		Saved Y position in pixels (0=top)
  * @escape_buf:		Buffer to accumulate escape sequence
+ * @utf8_cp437_buf:	Buffer to accumulate UTF-8 byte sequence
  */
 struct vidconsole_priv {
 	struct stdio_dev sdev;
@@ -66,6 +67,9 @@ struct vidconsole_priv {
 	int row_saved;
 	int col_saved;
 	char escape_buf[32];
+#ifdef CONFIG_EFI_LOADER
+	char utf8_cp437_buf[8];
+#endif
 };
 
 /**
