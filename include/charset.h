@@ -328,7 +328,7 @@ int utf8_to_cp437_stream(u8 c, char *buffer);
  *
  * @c:		next UTF-8 character to convert
  * @buffer:	buffer, at least 5 characters
- * Return:	next codepage 437 character or 0
+ * Return:	next Unicode code point or 0
  */
 int utf8_to_utf32_stream(u8 c, char *buffer);
 
