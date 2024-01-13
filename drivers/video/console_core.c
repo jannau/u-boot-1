@@ -9,6 +9,7 @@
 #include <video.h>
 #include <video_console.h>
 #include <dm.h>
+#include <malloc.h>
 #include <video_font.h>
 #include "vidconsole_internal.h"
 
@@ -40,6 +41,11 @@ static int console_set_font(struct udevice *dev, struct video_fontdata *fontdata
 		vc_priv->cols = vid_priv->xsize / fontdata->width;
 		vc_priv->rows = vid_priv->ysize / fontdata->height;
 	}
+
+	if (priv->cursor_data)
+		free(priv->cursor_data);
+	priv->cursor_data = calloc(fontdata->height * VIDCONSOLE_CURSOR_WIDTH,
+				   sizeof(*priv->cursor_data));
 
 	return 0;
 }
@@ -73,6 +79,25 @@ inline void fill_pixel_and_goto_next(void **dstp, u32 value, int pbytes, int ste
 		*dst = value;
 	}
 	*dstp = dst_byte + step;
+}
+
+inline void copy_pixel_and_goto_next(void **srcp, u32 *value, int pbytes, int step)
+{
+	u8 *src_byte = *srcp;
+
+	if (pbytes == 4) {
+		u32 *src = *srcp;
+		*value = *src;
+	}
+	if (pbytes == 2) {
+		u16 *src = *srcp;
+		*value = *src;
+	}
+	if (pbytes == 1) {
+		u8 *src = *srcp;
+		*value = *src;
+	}
+	*srcp = src_byte + step;
 }
 
 int fill_char_vertically(uchar *pfont, void **line, struct video_priv *vid_priv,
@@ -174,6 +199,76 @@ int fill_char_horizontally(uchar *pfont, void **line, struct video_priv *vid_pri
 		}
 	}
 	return ret;
+}
+
+int cursor_save_fb(struct udevice *dev, void *line, struct video_priv *vid_priv,
+			   uint height, bool direction)
+{
+	struct console_simple_priv *priv = dev_get_priv(dev);
+	int step, line_step, pbytes, ret;
+	uint *value;
+	void *src;
+
+	if (!priv->cursor_data)
+		return 0;
+
+	ret = check_bpix_support(vid_priv->bpix);
+	if (ret)
+		return ret;
+
+	pbytes = VNBYTES(vid_priv->bpix);
+	if (direction) {
+		step = -pbytes;
+		line_step = -vid_priv->line_length;
+	} else {
+		step = pbytes;
+		line_step = vid_priv->line_length;
+	}
+
+	priv->cursor_line = line;
+	priv->cursor_stride = line_step;
+	priv->cursor_step = step;
+	priv->cursor_pbytes = pbytes;
+
+	for (int row = 0; row < height; row++) {
+		src = line;
+		for (int col = 0; col < VIDCONSOLE_CURSOR_WIDTH; col++) {
+			value = &priv->cursor_data[col + row * VIDCONSOLE_CURSOR_WIDTH];
+			copy_pixel_and_goto_next(&src, value, pbytes, step);
+		}
+		line += line_step;
+	}
+
+	priv->cursor_height = height;
+
+	return 0;
+}
+
+int cursor_restore_fb(struct udevice *dev)
+{
+	struct console_simple_priv *priv = dev_get_priv(dev);
+	void *line = priv->cursor_line;
+	int step = priv->cursor_step;
+	int line_step = priv->cursor_stride;
+	int pbytes = priv->cursor_pbytes;
+	uint value;
+
+	if (!priv->cursor_data || !priv->cursor_height || !line)
+		return 0;
+
+	for (int row = 0; row < priv->cursor_height; row++) {
+		void *dst = line;
+		for (int col = 0; col < VIDCONSOLE_CURSOR_WIDTH; col++) {
+			value = priv->cursor_data[col + row * VIDCONSOLE_CURSOR_WIDTH];
+			fill_pixel_and_goto_next(&dst, value, pbytes, step);
+		}
+		line += line_step;
+	}
+
+	priv->cursor_height = 0;
+	priv->cursor_line = NULL;
+
+	return 0;
 }
 
 int draw_cursor_vertically(void **line, struct video_priv *vid_priv,
