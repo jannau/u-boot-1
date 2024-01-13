@@ -19,6 +19,12 @@
  */
 struct console_simple_priv {
 	struct video_fontdata *fontdata;
+	u32 *cursor_data;
+	void *cursor_line;
+	int cursor_stride;
+	int cursor_step;
+	int cursor_pbytes;
+	u32 cursor_height;
 };
 
 /**
@@ -94,6 +100,41 @@ int fill_char_vertically(uchar *pfont, void **line, struct video_priv *vid_priv,
  */
 int fill_char_horizontally(uchar *pfont, void **line, struct video_priv *vid_priv,
 			   struct video_fontdata *fontdata, bool direction);
+
+
+/**
+ * cursor_save_fb() - Save fb Draw a simple vertical cursor
+ *
+ * @param dev: a pointer to device.
+ * @line: pointer to framebuffer buffer: upper left cursor corner
+ * @vid_priv: driver private data
+ * @height: height of the cursor in pixels
+ * @param direction	controls cursor orientation. Can be normal or flipped.
+ * When normal:               When flipped:
+ *|-----------------------------------------------|
+ *|               *        |   line stepping      |
+ *|    ^  * * * * *        |   |                  |
+ *|    |    *     *        |   v   *     *        |
+ *|    |                   |       * * * * *      |
+ *|  line stepping         |       *              |
+ *|                        |                      |
+ *|  stepping ->           |        <<- stepping  |
+ *|---!!we're starting from upper left char corner|
+ *|-----------------------------------------------|
+ *
+ * Return: 0, if success, or else error code.
+ */
+int cursor_save_fb(struct udevice *dev, void *line, struct video_priv *vid_priv,
+		   uint height, bool direction);
+
+/**
+ * cursor_restore_fb() - Restore fb data under a previously rendered the cursor
+ *
+ * @param dev: a pointer to device.
+ *
+ * Return: 0, if success, or else error code.
+ */
+int cursor_restore_fb(struct udevice *dev);
 
 /**
  * draw_cursor_vertically() - Draw a simple vertical cursor

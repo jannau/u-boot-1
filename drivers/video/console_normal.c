@@ -121,6 +121,14 @@ static int console_set_cursor_visible(struct udevice *dev, bool visible,
 	x -= 1;
 
 	line = start;
+
+	cursor_restore_fb(dev);
+	if (!visible)
+		return 0;
+
+	cursor_save_fb(dev, line, vid_priv, vc_priv->y_charsize,
+		       NORMAL_DIRECTION);
+
 	draw_cursor_vertically(&line, vid_priv, vc_priv->y_charsize,
 			       NORMAL_DIRECTION);
 
