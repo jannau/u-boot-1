@@ -796,4 +796,5 @@ void vidconsole_position_cursor(struct udevice *dev, unsigned col, unsigned row)
 	x = min_t(short, col * priv->x_charsize, vid_priv->xsize - 1);
 	y = min_t(short, row * priv->y_charsize, vid_priv->ysize - 1);
 	vidconsole_set_cursor_pos(dev, x, y);
+	vidconsole_set_cursor_visible(dev, true, x, y, 0);
 }
