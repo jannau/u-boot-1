@@ -1031,7 +1031,7 @@ int usb_emul_setup_device(struct udevice *dev, struct usb_string *strings,
  */
 int usb_emul_control(struct udevice *emul, struct usb_device *udev,
 		     unsigned long pipe, void *buffer, int length,
-		     struct devrequest *setup);
+		     struct devrequest *setup, int timeout);
 
 /**
  * usb_emul_bulk() - Send a bulk packet to an emulator
@@ -1042,7 +1042,7 @@ int usb_emul_control(struct udevice *emul, struct usb_device *udev,
  * Return: 0 if OK, -ve on error
  */
 int usb_emul_bulk(struct udevice *emul, struct usb_device *udev,
-		  unsigned long pipe, void *buffer, int length);
+		  unsigned long pipe, void *buffer, int length, int timeout);
 
 /**
  * usb_emul_int() - Send an interrupt packet to an emulator
