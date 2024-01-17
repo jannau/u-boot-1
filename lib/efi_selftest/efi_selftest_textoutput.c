@@ -46,6 +46,8 @@ u"left bottom \u2502 right bottom  \u2502\n\u2514\u2500\u2500\u2500"
 u"\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2534"
 u"\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
 u"\u2500\u2500\u2500\u2500\u2518\n";
+	const u16 konami[] =
+u"Konami code: \u25b2 \u25b2 \u25bc \u25bc \u25c4 \u25ba \u25c4 \u25ba B A\n";
 
 	/* SetAttribute */
 	efi_st_printf("\nColor palette\n");
@@ -142,6 +144,11 @@ u"\u2500\u2500\u2500\u2500\u2518\n";
 	ret = con_out->output_string(con_out, boxes);
 	if (ret != EFI_ST_SUCCESS) {
 		efi_st_error("OutputString failed for box drawing chars\n");
+		return EFI_ST_FAILURE;
+	}
+	ret = con_out->output_string(con_out, konami);
+	if (ret != EFI_ST_SUCCESS) {
+		efi_st_error("OutputString failed for symbol chars\n");
 		return EFI_ST_FAILURE;
 	}
 	con_out->output_string(con_out, u"waiting for admiration...\n");
